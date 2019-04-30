@@ -1,0 +1,2 @@
+The ecgScratchEpoch2.hdf5 trained model needs to be in this folder, it can be
+downloaded from: https://drive.google.com/file/d/1aFKVKz41A9fu8dX2KfwlEGV8vz9ljiuZ/view
