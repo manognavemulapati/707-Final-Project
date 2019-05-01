@@ -12,6 +12,10 @@ class manifold(object):
     n_samples, n_features = self.X.shape
     n_neighbors = 30
 
+    #Try PCA to see if linear dimensionality reduction works
+    def PCA():
+        X_pca = decomposition.TruncatedSVD(n_components=2).fit_transform(X)
+
     def Isomap():
         X_iso = manifold.Isomap(n_neighbors, n_components=2).fit_transform(self.X)
 
