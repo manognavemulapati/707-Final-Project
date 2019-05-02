@@ -16,6 +16,7 @@ import wfdb
 from keras.applications.imagenet_utils import preprocess_input, decode_predictions
 from keras.models import load_model
 from keras.preprocessing import image
+import manifold
 
 # # Flask utils
 # from flask import Flask, redirect, url_for, request, render_template
@@ -33,11 +34,12 @@ import keras.layers
 from keras.layers import BatchNormalization,MaxPool2D,Flatten,Dense,Dropout,LSTM
 
 IMAGE_SIZE = [128,128]
+inputShape = [64,64]
 
 number_of_classes = 8
 
 model = Sequential()
-model.add(Conv2D(64, (3,3),strides = (1,1), input_shape = IMAGE_SIZE + [1],kernel_initializer='glorot_uniform'))
+model.add(Conv2D(64, (3,3),strides = (1,1), input_shape = inputShape + [1],kernel_initializer='glorot_uniform'))
 model.add(keras.layers.ELU())
 model.add(BatchNormalization())
 model.add(Conv2D(64, (3,3),strides = (1,1),kernel_initializer='glorot_uniform'))
@@ -70,7 +72,7 @@ model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accur
 # create and fit the LSTM network
 batch_size = 64
 model2 = Sequential()
-model2.add(LSTM(512, return_sequences=True, input_shape= IMAGE_SIZE )) #(1, check)))
+model2.add(LSTM(512, return_sequences=True, input_shape= inputShape )) #(1, check)))
 #model.add(Dropout(0.25))
 model2.add(LSTM(256, return_sequences=True))
 #model.add(Dropout(0.25))
@@ -120,7 +122,7 @@ indices = []
 #30:06 = 650160
 # but max value is 650000
 sampto = 650000
-datanum = "100"
+datanum = "217"
 
 kernel = np.ones((4,4),np.uint8)
 record = wfdb.rdsamp('data/'+datanum, sampto=sampto)
@@ -162,12 +164,12 @@ for count, i in enumerate(signals):
     im_gray = np.expand_dims(im_gray,axis=2)
     plt.close(fig)
 
-    ann = wfdb.rdann("data/100",'atr',sampto=sampto)
+    ann = wfdb.rdann("data/"+datanum,'atr',sampto=sampto)
 
     # fail safe in case christov_segmenter misses a peak
-    if ((ann.sample[acount] - peaks[count]) < 50): # increase acount
+    if ((ann.sample[acount] - peaks[count]) < 75): # increase acount
         acount += 1
-    if ((ann.sample[acount] - peaks[count]) > 50): # decrease acount
+    if ((ann.sample[acount] - peaks[count]) > 75): # decrease acount
         acount -= 1
 
     label = ann.symbol[acount]
@@ -193,9 +195,14 @@ for count, i in enumerate(signals):
     acount += 1
 
 labels = np.array(labels)
-
 xs = np.array(xs)
-xs2 = xs.reshape(-1,128,128)
+#xs2 = xs.reshape(-1,128,128)
+
+dimReduction = manifold.manifold(xs)
+xs1 = dimReduction.PCA()
+inputShape = xs1.shape
+xs1 = xs1.reshape(xs.shape[0],64,64,1)
+xs2 = xs1.reshape(-1,64,64)
 
 hist = model.fit(xs,labels,epochs=100,batch_size=64)
 hist2 = model2.fit(xs2,labels,epochs=100,batch_size=64)
@@ -259,7 +266,9 @@ hist3 = model3.fit(intxs,labels,epochs=100,batch_size=64)
 #     json.dump(data, outfile) 
 # flag+=1 
 
-
+# >>> np.save('pdata/'+datanum+'x',xs)
+# >>> np.save('pdata/'+datanum+'y',labels)
+# >>> asdf = np.load('pdata/100x.npy')
 
 
 # with open(json_filename, 'r') as file:
@@ -270,6 +279,15 @@ hist3 = model3.fit(intxs,labels,epochs=100,batch_size=64)
 os.remove('fig.png')      
 print(output)
 
+#100
+#118
+
+#200
+#207
+
+#209
+#214
+#217
 
 
 
