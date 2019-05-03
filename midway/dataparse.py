@@ -26,7 +26,7 @@ indices = []
 #217
 
 sampto = 650000
-datanum = "100"
+datanum = "217"
 
 kernel = np.ones((4,4),np.uint8)
 record = wfdb.rdsamp('data/'+datanum, sampto=sampto)
